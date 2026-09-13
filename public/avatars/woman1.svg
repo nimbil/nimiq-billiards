@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <clipPath id="circ"><circle cx="60" cy="60" r="58"/></clipPath>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#3a1a2e"/>
+  <g clip-path="url(#circ)">
+    <ellipse cx="60" cy="130" rx="40" ry="35" fill="#d4508a"/>
+    <rect x="50" y="78" width="20" height="14" rx="4" fill="#e8c4a0"/>
+    <ellipse cx="60" cy="52" rx="28" ry="30" fill="#e8c4a0"/>
+    <!-- Long wavy hair -->
+    <path d="M28 50 Q28 15 60 10 Q92 15 92 50 Q92 40 88 35 Q80 22 60 18 Q40 22 32 35 Q28 40 28 50" fill="#8B4513"/>
+    <path d="M28 50 Q26 70 28 90 Q30 80 30 50" fill="#8B4513"/>
+    <path d="M92 50 Q94 70 92 90 Q90 80 90 50" fill="#8B4513"/>
+    <ellipse cx="47" cy="52" rx="4.5" ry="5" fill="white"/>
+    <ellipse cx="73" cy="52" rx="4.5" ry="5" fill="white"/>
+    <circle cx="48" cy="53" r="2.5" fill="#2c5e2e"/>
+    <circle cx="74" cy="53" r="2.5" fill="#2c5e2e"/>
+    <circle cx="49" cy="52" r="1" fill="white"/>
+    <circle cx="75" cy="52" r="1" fill="white"/>
+    <!-- Eyelashes -->
+    <path d="M40 46 L42 44" stroke="#5a3a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M43 45 L45 43" stroke="#5a3a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M66 46 L68 44" stroke="#5a3a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M69 45 L71 43" stroke="#5a3a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M40 44 Q47 41 54 44" stroke="#5a3a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M66 44 Q73 41 80 44" stroke="#5a3a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M58 57 Q60 61 62 57" stroke="#c49a7a" stroke-width="1.5" fill="none"/>
+    <!-- Lips -->
+    <path d="M48 66 Q54 62 60 64 Q66 62 72 66" stroke="#c04060" stroke-width="2" fill="#c04060" stroke-linecap="round"/>
+  </g>
+</svg>

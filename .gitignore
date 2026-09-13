@@ -1,0 +1,18 @@
+node_modules/
+dist/
+dist-server/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+
+# Server runtime data (contains secrets)
+server/.auth-sessions.json
+server/.player-balances.json
+server/.player-profiles.json
+server/.player-stats.json
+
+# OS
+.DS_Store
+Thumbs.db

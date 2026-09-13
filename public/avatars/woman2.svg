@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <clipPath id="circ"><circle cx="60" cy="60" r="58"/></clipPath>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#1a1a3a"/>
+  <g clip-path="url(#circ)">
+    <ellipse cx="60" cy="130" rx="40" ry="35" fill="#5a5aaa"/>
+    <rect x="50" y="78" width="20" height="14" rx="4" fill="#d4a074"/>
+    <ellipse cx="60" cy="52" rx="28" ry="30" fill="#d4a074"/>
+    <!-- Straight hair with bangs -->
+    <path d="M30 48 Q30 15 60 10 Q90 15 90 48 L90 85 Q90 90 85 90 Q80 90 80 85 L80 50 Q80 30 60 26 Q40 30 40 50 L40 85 Q40 90 35 90 Q30 90 30 85 Z" fill="#1a1a2a"/>
+    <path d="M32 42 Q32 20 60 16 Q88 20 88 42 L88 48 Q88 30 60 24 Q32 30 32 48 Z" fill="#1a1a2a"/>
+    <!-- Bangs -->
+    <path d="M32 40 Q40 36 50 40 Q55 38 60 40 Q65 38 70 40 Q80 36 88 40 L88 48 Q80 44 70 48 Q65 46 60 48 Q55 46 50 48 Q40 44 32 48 Z" fill="#1a1a2a"/>
+    <ellipse cx="47" cy="52" rx="4.5" ry="5" fill="white"/>
+    <ellipse cx="73" cy="52" rx="4.5" ry="5" fill="white"/>
+    <circle cx="48" cy="53" r="2.5" fill="#2244aa"/>
+    <circle cx="74" cy="53" r="2.5" fill="#2244aa"/>
+    <circle cx="49" cy="52" r="1" fill="white"/>
+    <circle cx="75" cy="52" r="1" fill="white"/>
+    <path d="M40 46 L42 44" stroke="#1a1a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M43 45 L45 43" stroke="#1a1a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M66 46 L68 44" stroke="#1a1a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M69 45 L71 43" stroke="#1a1a2a" stroke-width="1" stroke-linecap="round"/>
+    <path d="M40 44 Q47 41 54 44" stroke="#1a1a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M66 44 Q73 41 80 44" stroke="#1a1a2a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M58 57 Q60 61 62 57" stroke="#b89070" stroke-width="1.5" fill="none"/>
+    <path d="M50 66 Q55 70 60 68 Q65 70 70 66" stroke="#aa3355" stroke-width="2" fill="#aa3355" stroke-linecap="round"/>
+    <!-- Earrings -->
+    <circle cx="32" cy="58" r="2.5" fill="#f5c842"/>
+    <circle cx="88" cy="58" r="2.5" fill="#f5c842"/>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <clipPath id="circ"><circle cx="60" cy="60" r="58"/></clipPath>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#1a2e1a"/>
+  <g clip-path="url(#circ)">
+    <ellipse cx="60" cy="130" rx="40" ry="35" fill="#4a7a4a"/>
+    <rect x="50" y="78" width="20" height="14" rx="4" fill="#c49a6c"/>
+    <ellipse cx="60" cy="52" rx="28" ry="30" fill="#c49a6c"/>
+    <path d="M34 42 Q36 20 60 16 Q84 20 86 42 L86 38 Q86 25 75 20 Q65 16 60 18 Q55 16 45 20 Q34 25 34 38 Z" fill="#4a3520"/>
+    <ellipse cx="47" cy="52" rx="4.5" ry="5" fill="white"/>
+    <ellipse cx="73" cy="52" rx="4.5" ry="5" fill="white"/>
+    <circle cx="48" cy="53" r="2.5" fill="#3d2b1a"/>
+    <circle cx="74" cy="53" r="2.5" fill="#3d2b1a"/>
+    <circle cx="49" cy="52" r="1" fill="white"/>
+    <circle cx="75" cy="52" r="1" fill="white"/>
+    <path d="M40 44 Q47 41 54 44" stroke="#4a3520" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M66 44 Q73 41 80 44" stroke="#4a3520" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M58 57 Q60 62 62 57" stroke="#a8845c" stroke-width="1.5" fill="none"/>
+    <path d="M48 66 Q60 73 72 66" stroke="#a8845c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- Beard -->
+    <path d="M38 62 Q40 80 60 82 Q80 80 82 62 Q78 68 60 70 Q42 68 38 62" fill="#4a3520" opacity="0.5"/>
+  </g>
+</svg>
