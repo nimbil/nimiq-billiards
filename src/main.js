@@ -112,6 +112,11 @@ class NimiqBilliards {
     document.getElementById('btn-mobile-shoot')?.addEventListener('click', () => {
       if (this.input) this.input.triggerShoot();
     });
+    document.getElementById('btn-mobile-shoot')?.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (this.input) this.input.triggerShoot();
+    });
     
     document.getElementById('btn-mobile-cancel')?.addEventListener('click', () => {
       if (this.input) this.input.cancelAim();
@@ -1086,6 +1091,12 @@ class NimiqBilliards {
   _setupInput() {
     this.input.onShoot = (angle, power) => this._executeShot(angle, power);
     this.input.onBallInHand = (x, y) => this._placeCueBall(x, y);
+    if (this.input.isMobile) {
+      const slider = document.getElementById('mobile-power-slider');
+      if (slider) {
+        this.input.setExternalPower(parseInt(slider.value) / 100);
+      }
+    }
   }
 
   _executeShot(angle, power) {

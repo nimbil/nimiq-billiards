@@ -184,8 +184,12 @@ export class InputHandler {
     this.renderer.mouseX = pos.x;
     this.renderer.mouseY = pos.y;
     this.renderer.isAiming = true;
-    this.renderer.aimPower = 0;
-    this.externalPower = null;
+    if (!this.isMobile) {
+      this.renderer.aimPower = 0;
+      this.externalPower = null;
+    } else {
+      this.renderer.aimPower = this.externalPower !== null ? this.externalPower : 0.5;
+    }
   }
 
   _onTouchMove(e) {
@@ -208,9 +212,11 @@ export class InputHandler {
     }
 
     this.isTouching = false;
-    if (!this.externalPower) {
-      this.renderer.isAiming = false;
-      this.renderer.aimPower = 0;
+    if (!this.isMobile) {
+      if (!this.externalPower) {
+        this.renderer.isAiming = false;
+        this.renderer.aimPower = 0;
+      }
     }
   }
 
