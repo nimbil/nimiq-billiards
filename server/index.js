@@ -62,9 +62,9 @@ import { MatchReplayLogger } from './match-replay.js';
 
 const app = express();
 const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({ noServer: true });
 
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: false }));
 app.use(cors());
 app.use(express.json());
 
@@ -1130,6 +1130,18 @@ app.get('*', (req, res) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/ws')) return;
   const indexPath = fs.existsSync(distPath) ? path.join(distPath, 'index.html') : path.join(rootPath, 'index.html');
   res.sendFile(indexPath);
+});
+
+// Handle WebSocket upgrades manually (needed for Railway/Render proxies)
+server.on('upgrade', (request, socket, head) => {
+  const pathname = new URL(request.url, `http://${request.headers.host}`).pathname;
+  if (pathname === '/ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
 });
 
 server.listen(PORT, () => {
