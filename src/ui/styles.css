@@ -2872,6 +2872,10 @@ html, body {
   }
 
   .player-info-game {
+    min-width: 0;
+  }
+
+  .player-info-game .player-rating-game {
     display: none;
   }
 

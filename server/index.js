@@ -964,7 +964,7 @@ app.post('/api/game-result', authMiddleware, (req, res) => {
     stats.xp = (stats.xp || 0) + 30;
     stats.streak = 0;
   }
-  stats.level = Math.floor((stats.xp || 0) / 800) + 1;
+  stats.level = Math.min(100, Math.floor((stats.xp || 0) / 1000) + 1);
   saveStats();
   res.json({ ok: true, stats: { wins: stats.wins, losses: stats.losses, gamesPlayed: stats.gamesPlayed, xp: stats.xp, level: stats.level, winRate: stats.gamesPlayed > 0 ? Math.round((stats.wins / stats.gamesPlayed) * 1000) / 10 : 0 } });
 });

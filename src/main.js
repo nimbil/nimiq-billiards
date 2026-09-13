@@ -876,9 +876,10 @@ class NimiqBilliards {
         el('profile-winrate').textContent = s.gamesPlayed > 0 ? Math.round((s.wins / s.gamesPlayed) * 1000) / 10 + '%' : '0%';
       }
       if (el('profile-level')) el('profile-level').textContent = s.level || 1;
-      if (el('profile-rating')) el('profile-rating').textContent = `${(s.xp || 0) % 800} / 800 XP`;
+      const xpInLevel = (s.xp || 0) % 1000;
+      if (el('profile-rating')) el('profile-rating').textContent = `${xpInLevel} / 1000 XP`;
       const fill = document.getElementById('xp-bar-fill');
-      if (fill) fill.style.width = `${((s.xp || 0) % 800 / 800) * 100}%`;
+      if (fill) fill.style.width = `${(xpInLevel / 1000) * 100}%`;
     });
 
     this.network.on('matchFound', (msg) => {
@@ -1368,16 +1369,22 @@ class NimiqBilliards {
     reasonEl.textContent = reason;
     overlay.classList.remove('hidden');
 
-    if (this.mode === 'ai' && this.wallet.connected) {
-      fetch('/api/game-result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.authToken}` },
-        body: JSON.stringify({ won, matchType: 'ai' }),
-      }).then(r => r.json()).then(data => {
-        if (data.stats) {
-          this._updateProfileStats(data.stats);
-        }
-      }).catch(() => {});
+    if (this.mode === 'ai') {
+      const authToken = this.authToken || localStorage.getItem('bil_auth_token');
+      if (authToken) {
+        fetch('/api/game-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          body: JSON.stringify({ won, matchType: 'ai' }),
+        }).then(r => r.json()).then(data => {
+          console.log('[GAME] Game result recorded:', data);
+          if (data.stats) {
+            this._updateProfileStats(data.stats);
+          }
+        }).catch(e => console.error('[GAME] Failed to record game result:', e));
+      } else {
+        console.warn('[GAME] No auth token, cannot record game result');
+      }
     }
   }
 
@@ -1528,13 +1535,13 @@ class NimiqBilliards {
     const s = this.network?.stats;
     if (!s) return;
     const xp = s.xp || 0;
-    const level = s.level || 1;
-    const xpInLevel = xp % 800;
+    const level = Math.min(100, Math.floor(xp / 1000) + 1);
+    const xpInLevel = xp % 1000;
     const el = (id) => document.getElementById(id);
     if (el('profile-level')) el('profile-level').textContent = level;
-    if (el('profile-rating')) el('profile-rating').textContent = `${xpInLevel} / 800 XP`;
+    if (el('profile-rating')) el('profile-rating').textContent = `${xpInLevel} / 1000 XP`;
     const fill = el('xp-bar-fill');
-    if (fill) fill.style.width = `${(xpInLevel / 800) * 100}%`;
+    if (fill) fill.style.width = `${(xpInLevel / 1000) * 100}%`;
   }
 
   _updateStatsFromResult(msg) {
@@ -1591,9 +1598,14 @@ class NimiqBilliards {
       el('profile-winrate').textContent = s.winRate !== undefined ? s.winRate + '%' : '0%';
     }
     if (el('profile-level')) el('profile-level').textContent = s.level || 1;
-    if (el('profile-rating')) el('profile-rating').textContent = s.xp || 0;
+    const xp = s.xp || 0;
+    const xpInLevel = xp % 1000;
+    if (el('profile-rating')) el('profile-rating').textContent = `${xpInLevel} / 1000 XP`;
     const xpBar = document.getElementById('xp-bar-fill');
-    if (xpBar) xpBar.style.width = ((s.xp || 0) % 800 / 800 * 100) + '%';
+    if (xpBar) xpBar.style.width = (xpInLevel / 1000 * 100) + '%';
+    if (this.network) {
+      this.network.stats = { ...this.network.stats, wins: s.wins, losses: s.losses, gamesPlayed: s.gamesPlayed, xp: s.xp, level: s.level, winRate: s.winRate };
+    }
   }
 
   _updateUI() { this._updateBallRacks(); }

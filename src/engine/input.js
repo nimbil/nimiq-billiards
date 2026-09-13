@@ -50,7 +50,17 @@ export class InputHandler {
     this.canvas.style.touchAction = 'none';
   }
 
-  enable() { this.enabled = true; }
+  enable() {
+    this.enabled = true;
+    if (this.isMobile) {
+      const slider = document.getElementById('mobile-power-slider');
+      if (slider) slider.value = 50;
+      const label = document.getElementById('mobile-power-value');
+      if (label) label.textContent = '50%';
+      this.externalPower = 0.5;
+      this.renderer.aimPower = 0.5;
+    }
+  }
 
   disable() {
     this.enabled = false;
