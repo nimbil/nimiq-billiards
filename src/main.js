@@ -368,7 +368,8 @@ class NimiqBilliards {
     this._matchmakingTimeout = null;
 
     try {
-      const wsUrl = `ws://${window.location.hostname}:3001/ws`;
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
       await this.network.connect(wsUrl);
       const savedName = localStorage.getItem('bil_player_name');
       if (savedName) this.network.setName(savedName);
