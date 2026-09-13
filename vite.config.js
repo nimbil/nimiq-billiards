@@ -19,7 +19,6 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: 'index.html',
-      external: ['@nimiq/mini-app-sdk']
     }
   },
   server: {

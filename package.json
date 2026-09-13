@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Multiplayer billiards game integrated with the Nimiq ecosystem",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "vite",
@@ -10,7 +13,7 @@
     "build": "vite build",
     "build:server": "tsc",
     "preview": "vite preview",
-    "start": "node dist-server/index.js",
+    "start": "node server/index.js",
     "test": "node test/rules-engine.test.js",
     "test:watch": "node --watch test/rules-engine.test.js",
     "db:generate": "drizzle-kit generate",

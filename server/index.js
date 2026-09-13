@@ -67,8 +67,17 @@ const wss = new WebSocketServer({ server, path: '/ws' });
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json());
-app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
-app.use(express.static(path.join(__dirname, '..')));
+
+// Serve static files - try dist/ first (production build), then project root (dev)
+const distPath = path.join(__dirname, '..', 'dist');
+const rootPath = path.join(__dirname, '..');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  console.log(`[STATIC] Serving from ${distPath}`);
+} else {
+  app.use(express.static(rootPath));
+  console.log(`[STATIC] Serving from ${rootPath}`);
+}
 
 const TABLE_W = 900, TABLE_H = 450, RAIL_W = 30, BALL_R = 10, POCKET_R = 22;
 const FRICTION = 0.985, MIN_VEL = 0.15, SUBSTEPS = 4;
@@ -1115,6 +1124,13 @@ if (getBalance(USER_WALLET) < 20000000) {
   setBalance(USER_WALLET, 20000000);
   console.log(`[BAL] Pre-funded ${USER_WALLET} with 200 NIM`);
 }
+
+// SPA catch-all: serve index.html for non-API routes
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/ws')) return;
+  const indexPath = fs.existsSync(distPath) ? path.join(distPath, 'index.html') : path.join(rootPath, 'index.html');
+  res.sendFile(indexPath);
+});
 
 server.listen(PORT, () => {
   console.log(`\n  ==========================================\n    Nimiq Billiards Server (Authoritative)\n    Port: ${PORT}\n    Mode: MAINNET\n    Auto-Withdraw: ${platformKeyPair ? 'ENABLED' : 'DISABLED (no PLATFORM_SEED)'}\n    Competitive Tiers: ${MATCH_TIERS.map(t => t.name).join(', ')}\n    WebSocket: ws://localhost:${PORT}/ws\n    Security: Rate limiting, Nonce tracking, Replay logging\n  ==========================================\n`);
