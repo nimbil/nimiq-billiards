@@ -456,12 +456,17 @@ class NimiqBilliards {
         }
 
         // Step 3: Send to server for login
+        console.log('[AUTH] Sending login:', { wallet: res.address?.slice(0,12)+'...', sigLen: res.signature?.length, msgLen: msg.length });
         const lR = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ wallet: res.address, message: msg, signature: res.signature }),
         });
-        if (!lR.ok) throw new Error('Login failed');
+        if (!lR.ok) {
+          const errBody = await lR.json().catch(() => ({}));
+          console.error('[AUTH] Login error:', lR.status, errBody);
+          throw new Error('Login failed: ' + (errBody.error || lR.status));
+        }
         const data = await lR.json();
 
         // Step 4: Store auth token and balance

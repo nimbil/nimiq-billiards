@@ -772,6 +772,7 @@ app.post('/api/auth/nonce', (req, res) => {
 
 app.post('/api/auth/login', (req, res) => {
   const { wallet, message, signature } = req.body;
+  console.log(`[AUTH] Login attempt: wallet=${wallet ? wallet.slice(0,12)+'...' : 'MISSING'} message=${message ? 'present' : 'MISSING'} signature=${signature ? signature.slice(0,20)+'...' : 'MISSING'}`);
   if (!wallet || !message || !signature) return res.status(400).json({ error: 'Missing fields' });
 
   let matchedNonce = null;

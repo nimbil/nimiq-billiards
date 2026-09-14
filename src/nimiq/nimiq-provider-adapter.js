@@ -246,9 +246,11 @@ export class NimiqProviderAdapter extends WalletService {
         }
         if (this.provider) {
           this.connectionMethod = 'miniapp';
+          console.log('[NIMIQ] Connected via Mini App SDK');
 
           // First get account
           const accounts = await this.provider.listAccounts();
+          console.log('[NIMIQ] listAccounts result:', JSON.stringify(accounts));
           if (accounts && typeof accounts !== 'object' && accounts.length > 0) {
             this.address = accounts[0];
             this.connected = true;
@@ -265,15 +267,27 @@ export class NimiqProviderAdapter extends WalletService {
 
           // Sign the message
           const sigResult = await this.provider.sign(message);
+          console.log('[NIMIQ] sign result type:', typeof sigResult, sigResult instanceof Uint8Array, Array.isArray(sigResult));
           if (sigResult && typeof sigResult === 'object' && 'error' in sigResult) {
             const err = new Error('User rejected signing');
             err.type = 'USER_REJECTED';
             throw err;
           }
 
-          const signature = Array.from(
-            sigResult instanceof Uint8Array ? sigResult : new Uint8Array(sigResult)
-          ).map(b => b.toString(16).padStart(2, '0')).join('');
+          // Handle different signature formats from Mini App SDK
+          let sigBytes;
+          if (sigResult instanceof Uint8Array) {
+            sigBytes = sigResult;
+          } else if (sigResult && typeof sigResult === 'object' && sigResult.signature) {
+            sigBytes = sigResult.signature instanceof Uint8Array ? sigResult.signature : new Uint8Array(sigResult.signature);
+          } else if (sigResult && typeof sigResult === 'object' && sigResult.buffer) {
+            sigBytes = new Uint8Array(sigResult);
+          } else {
+            sigBytes = new Uint8Array(sigResult);
+          }
+
+          const signature = Array.from(sigBytes)
+            .map(b => b.toString(16).padStart(2, '0')).join('');
 
           this.emit(WALLET_EVENTS.CONNECTED, {
             address: this.address,
@@ -281,6 +295,7 @@ export class NimiqProviderAdapter extends WalletService {
             isTestnet: this.isTestnet,
           });
 
+          console.log('[NIMIQ] Mini App auth:', { address: this.address?.slice(0,12)+'...', sigLen: signature.length });
           return { address: this.address, signature };
         }
       }
