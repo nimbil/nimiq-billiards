@@ -4,13 +4,13 @@ import { fileURLToPath } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   root: '.',
   publicDir: 'public',
   resolve: {
-    alias: {
-      '@nimiq/mini-app-sdk': resolve(__dirname, 'src/nimiq/stub-sdk.js'),
-    },
+    alias: command === 'serve'
+      ? { '@nimiq/mini-app-sdk': resolve(__dirname, 'src/nimiq/stub-sdk.js') }
+      : {},
   },
   optimizeDeps: {
     exclude: ['@nimiq/hub-api']
@@ -32,4 +32,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));
