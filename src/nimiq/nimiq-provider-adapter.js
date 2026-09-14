@@ -132,19 +132,28 @@ export class NimiqProviderAdapter extends WalletService {
     }
 
     const result = await this.provider.listAccounts();
+    console.log('[NIMIQ] _connectMiniApp listAccounts:', typeof result, JSON.stringify(result)?.slice(0, 100));
 
     // Check for error response
     if (result && typeof result === 'object' && 'error' in result) {
       throw new Error(result.error.message || 'User rejected connection');
     }
 
-    const accounts = result;
-    if (!accounts || !accounts.length) {
+    let addr;
+    if (typeof result === 'string') {
+      addr = result;
+    } else if (Array.isArray(result) && result.length > 0) {
+      addr = result[0];
+    } else if (result && typeof result === 'object') {
+      addr = result.address || (Array.isArray(result) ? result[0] : null);
+    }
+
+    if (!addr) {
       throw new Error('No accounts found. User may have rejected the request.');
     }
 
-    this.address = accounts[0];
-    this.connectedAddress = accounts[0];
+    this.address = addr;
+    this.connectedAddress = addr;
     this.connected = true;
     this.connectionMethod = 'miniapp';
 
@@ -203,25 +212,16 @@ export class NimiqProviderAdapter extends WalletService {
    */
   async connect(appName) {
     try {
-      // If running inside Nimiq Pay, use Mini App SDK
-      if (NimiqProviderAdapter.isNimiqProviderAvailable()) {
+      // Try Mini App SDK first (works inside Nimiq Pay)
+      if (!this.provider) {
+        this.provider = await tryInitMiniApp();
+      }
+      if (this.provider) {
         return await this._connectMiniApp();
       }
 
-      // Auto-detect best method
-      if (!this.connectionMethod) {
-        this.connectionMethod = await NimiqProviderAdapter.detectMethod();
-      }
-
-      if (this.connectionMethod === 'miniapp') {
-        return await this._connectMiniApp();
-      }
-
-      if (this.connectionMethod === 'hub') {
-        return await this._connectHub(appName);
-      }
-
-      throw new Error('No Nimiq wallet detected. Install Nimiq Wallet extension or open in Nimiq Pay.');
+      // Fall back to Hub API (desktop browser with extension)
+      return await this._connectHub(appName);
     } catch (err) {
       console.error('[NIMIQ] Connection failed:', err);
       this.emit(WALLET_EVENTS.ERROR, err.message);
@@ -239,68 +239,66 @@ export class NimiqProviderAdapter extends WalletService {
     if (typeof window === 'undefined') return null;
 
     try {
-      // Mini App SDK: sign directly
-      if (this.connectionMethod === 'miniapp' || NimiqProviderAdapter.isNimiqProviderAvailable()) {
-        if (!this.provider) {
-          this.provider = await tryInitMiniApp();
+      // Try Mini App SDK first (works inside Nimiq Pay)
+      if (!this.provider) {
+        this.provider = await tryInitMiniApp();
+      }
+      if (this.provider) {
+        this.connectionMethod = 'miniapp';
+        console.log('[NIMIQ] Connected via Mini App SDK');
+
+        // First get account
+        const accounts = await this.provider.listAccounts();
+        console.log('[NIMIQ] listAccounts result:', JSON.stringify(accounts));
+
+        // Handle string address (some SDK versions)
+        if (typeof accounts === 'string') {
+          this.address = accounts;
+          this.connected = true;
+        } else if (Array.isArray(accounts) && accounts.length > 0) {
+          this.address = accounts[0];
+          this.connected = true;
+        } else if (accounts && typeof accounts === 'object' && !('error' in accounts)) {
+          // Might be {address: '...'} or similar
+          this.address = accounts.address || accounts[0];
+          this.connected = true;
         }
-        if (this.provider) {
-          this.connectionMethod = 'miniapp';
-          console.log('[NIMIQ] Connected via Mini App SDK');
 
-          // First get account
-          const accounts = await this.provider.listAccounts();
-          console.log('[NIMIQ] listAccounts result:', JSON.stringify(accounts));
-          if (accounts && typeof accounts !== 'object' && accounts.length > 0) {
-            this.address = accounts[0];
-            this.connected = true;
-          } else if (accounts && typeof accounts === 'object' && !('error' in accounts) && accounts.length > 0) {
-            this.address = accounts[0];
-            this.connected = true;
-          }
-
-          if (!this.address) {
-            const err = new Error('No accounts found');
-            err.type = 'WALLET_NOT_FOUND';
-            throw err;
-          }
-
-          // Sign the message
-          const sigResult = await this.provider.sign(message);
-          console.log('[NIMIQ] sign result type:', typeof sigResult, sigResult instanceof Uint8Array, Array.isArray(sigResult));
-          if (sigResult && typeof sigResult === 'object' && 'error' in sigResult) {
-            const err = new Error('User rejected signing');
-            err.type = 'USER_REJECTED';
-            throw err;
-          }
-
-          // Handle different signature formats from Mini App SDK
-          let sigBytes;
-          if (sigResult instanceof Uint8Array) {
-            sigBytes = sigResult;
-          } else if (sigResult && typeof sigResult === 'object' && sigResult.signature) {
-            sigBytes = sigResult.signature instanceof Uint8Array ? sigResult.signature : new Uint8Array(sigResult.signature);
-          } else if (sigResult && typeof sigResult === 'object' && sigResult.buffer) {
-            sigBytes = new Uint8Array(sigResult);
-          } else {
-            sigBytes = new Uint8Array(sigResult);
-          }
-
-          const signature = Array.from(sigBytes)
-            .map(b => b.toString(16).padStart(2, '0')).join('');
-
-          this.emit(WALLET_EVENTS.CONNECTED, {
-            address: this.address,
-            balance: 0,
-            isTestnet: this.isTestnet,
-          });
-
-          console.log('[NIMIQ] Mini App auth:', { address: this.address?.slice(0,12)+'...', sigLen: signature.length });
-          return { address: this.address, signature };
+        if (!this.address) {
+          const err = new Error('No accounts found');
+          err.type = 'WALLET_NOT_FOUND';
+          throw err;
         }
+
+        // Sign the message
+        const sigResult = await this.provider.sign(message);
+        console.log('[NIMIQ] sign result type:', typeof sigResult, sigResult instanceof Uint8Array, Array.isArray(sigResult));
+        if (sigResult && typeof sigResult === 'object' && 'error' in sigResult) {
+          const err = new Error('User rejected signing');
+          err.type = 'USER_REJECTED';
+          throw err;
+        }
+
+        // Handle different signature formats from Mini App SDK
+        let sigBytes;
+        if (sigResult instanceof Uint8Array) {
+          sigBytes = sigResult;
+        } else if (sigResult && typeof sigResult === 'object' && sigResult.signature) {
+          sigBytes = sigResult.signature instanceof Uint8Array ? sigResult.signature : new Uint8Array(sigResult.signature);
+        } else if (sigResult && typeof sigResult === 'object' && sigResult.buffer) {
+          sigBytes = new Uint8Array(sigResult);
+        } else {
+          sigBytes = new Uint8Array(sigResult);
+        }
+
+        const signature = Array.from(sigBytes)
+          .map(b => b.toString(16).padStart(2, '0')).join('');
+
+        console.log('[NIMIQ] Mini App auth:', { address: this.address?.slice(0,12)+'...', sigLen: signature.length });
+        return { address: this.address, signature };
       }
 
-      // Hub API fallback
+      // Hub API fallback (desktop browser with extension)
       const hub = await ensureHubApi();
       this.hubApi = hub;
 
