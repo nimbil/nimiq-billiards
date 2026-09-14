@@ -279,20 +279,19 @@ export class NimiqProviderAdapter extends WalletService {
           throw err;
         }
 
-        // Handle different signature formats from Mini App SDK
-        let sigBytes;
-        if (sigResult instanceof Uint8Array) {
-          sigBytes = sigResult;
-        } else if (sigResult && typeof sigResult === 'object' && sigResult.signature) {
-          sigBytes = sigResult.signature instanceof Uint8Array ? sigResult.signature : new Uint8Array(sigResult.signature);
-        } else if (sigResult && typeof sigResult === 'object' && sigResult.buffer) {
-          sigBytes = new Uint8Array(sigResult);
+        // SignatureResult = { publicKey: string, signature: string }
+        // signature is already a hex string from NimiqProvider
+        let signature;
+        if (typeof sigResult === 'string') {
+          signature = sigResult;
+        } else if (sigResult && typeof sigResult === 'object' && typeof sigResult.signature === 'string') {
+          signature = sigResult.signature;
+        } else if (sigResult instanceof Uint8Array) {
+          signature = Array.from(sigResult).map(b => b.toString(16).padStart(2, '0')).join('');
         } else {
-          sigBytes = new Uint8Array(sigResult);
+          console.error('[NIMIQ] Unexpected sign result:', sigResult);
+          throw new Error('Unexpected signature format');
         }
-
-        const signature = Array.from(sigBytes)
-          .map(b => b.toString(16).padStart(2, '0')).join('');
 
         console.log('[NIMIQ] Mini App auth:', { address: this.address?.slice(0,12)+'...', sigLen: signature.length });
         return { address: this.address, signature };
@@ -519,12 +518,17 @@ export class NimiqProviderAdapter extends WalletService {
         if (result && typeof result === 'object' && 'error' in result) {
           throw new Error('Signing rejected');
         }
-        return {
-          publicKey: this.address,
-          signature: Array.from(
-            result instanceof Uint8Array ? result : new Uint8Array(result)
-          ).map(b => b.toString(16).padStart(2, '0')).join(''),
-        };
+        let sig;
+        if (typeof result === 'string') {
+          sig = result;
+        } else if (result && typeof result === 'object' && typeof result.signature === 'string') {
+          sig = result.signature;
+        } else if (result instanceof Uint8Array) {
+          sig = Array.from(result).map(b => b.toString(16).padStart(2, '0')).join('');
+        } else {
+          throw new Error('Unexpected signature format');
+        }
+        return { publicKey: this.address, signature: sig };
       }
 
       // Hub API

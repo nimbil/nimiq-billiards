@@ -772,8 +772,12 @@ app.post('/api/auth/nonce', (req, res) => {
 
 app.post('/api/auth/login', (req, res) => {
   const { wallet, message, signature } = req.body;
-  console.log(`[AUTH] Login attempt: wallet=${wallet ? wallet.slice(0,12)+'...' : 'MISSING'} message=${message ? 'present' : 'MISSING'} signature=${signature ? signature.slice(0,20)+'...' : 'MISSING'}`);
-  if (!wallet || !message || !signature) return res.status(400).json({ error: 'Missing fields' });
+  const missing = [];
+  if (!wallet) missing.push('wallet');
+  if (!message) missing.push('message');
+  if (!signature) missing.push('signature');
+  console.log(`[AUTH] Login: wallet=${wallet ? ('"'+wallet.slice(0,16)+'..."') : 'MISSING'} message=${message ? message.length+'chars' : 'MISSING'} signature=${signature ? signature.length+'chars' : 'MISSING'} missing=[${missing}]`);
+  if (missing.length > 0) return res.status(400).json({ error: 'Missing fields', missing });
 
   let matchedNonce = null;
   for (const [nonce, data] of authNonces) {
