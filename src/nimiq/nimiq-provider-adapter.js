@@ -48,18 +48,29 @@ async function tryInitMiniApp() {
 let hubApiModule = null;
 let hubLoadPromise = null;
 
+function preloadHubApi() {
+  if (hubLoadPromise) return hubLoadPromise;
+  hubLoadPromise = (async () => {
+    try {
+      const mod = await import('@nimiq/hub-api');
+      const HubApi = mod.default;
+      hubApiModule = new HubApi(HUB_ENDPOINT);
+      console.log('[NIMIQ] Hub API pre-loaded');
+    } catch (e) {
+      console.warn('[NIMIQ] Hub API preload failed:', e);
+    }
+  })();
+  return hubLoadPromise;
+}
+
 async function ensureHubApi() {
   if (hubApiModule) return hubApiModule;
-  if (hubLoadPromise) return hubLoadPromise;
-
-  hubLoadPromise = (async () => {
-    const mod = await import('@nimiq/hub-api');
-    const HubApi = mod.default;
-    hubApiModule = new HubApi(HUB_ENDPOINT);
+  if (hubLoadPromise) {
+    await hubLoadPromise;
     return hubApiModule;
-  })();
-
-  return hubLoadPromise;
+  }
+  await preloadHubApi();
+  return hubApiModule;
 }
 
 // ─── Error classification ───────────────────────────────────
@@ -96,6 +107,8 @@ export class NimiqProviderAdapter extends WalletService {
     this.connectionMethod = null; // 'miniapp' | 'hub'
     this.isTestnet = false;
     this.connectedAddress = null;
+    // Pre-load Hub API eagerly so first-click popup isn't blocked
+    if (typeof window !== 'undefined') preloadHubApi();
   }
 
   /**
