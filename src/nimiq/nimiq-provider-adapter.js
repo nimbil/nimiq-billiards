@@ -31,9 +31,16 @@ async function tryInitMiniApp() {
   if (miniAppAttempted) return miniAppProvider;
   miniAppAttempted = true;
 
+  // Quick synchronous bail-out: if no provider is injected, skip immediately
+  // This prevents the 5s timeout from killing the user gesture on desktop
+  if (typeof window === 'undefined' || (!window.nimiq && !window.nimiqPay)) {
+    console.log('[NIMIQ] Mini App SDK not present (desktop/browser)');
+    return null;
+  }
+
   try {
     const { init } = await import('@nimiq/mini-app-sdk');
-    const provider = await init({ timeout: 5000 });
+    const provider = await init({ timeout: 1000 });
     miniAppProvider = provider;
     console.log('[NIMIQ] Mini App SDK detected');
     return miniAppProvider;
@@ -56,6 +63,11 @@ function preloadHubApi() {
       const HubApi = mod.default;
       hubApiModule = new HubApi(HUB_ENDPOINT);
       console.log('[NIMIQ] Hub API pre-loaded');
+      // Warm up: connect to hub so first signMessage doesn't fail
+      if (typeof hubApiModule.connect === 'function') {
+        await hubApiModule.connect();
+        console.log('[NIMIQ] Hub API connected');
+      }
     } catch (e) {
       console.warn('[NIMIQ] Hub API preload failed:', e);
     }
@@ -314,10 +326,25 @@ export class NimiqProviderAdapter extends WalletService {
       const hub = await ensureHubApi();
       this.hubApi = hub;
 
-      const result = await hub.signMessage({
-        appName: appName || 'NimiqBilliards',
-        message,
-      });
+      // Retry signMessage once — first popup may fail if hub WebSocket not ready
+      let result;
+      try {
+        result = await hub.signMessage({
+          appName: appName || 'NimiqBilliards',
+          message,
+        });
+      } catch (firstErr) {
+        console.warn('[NIMIQ] First signMessage failed, retrying:', firstErr.message);
+        // Re-init hub connection and try once more
+        hubApiModule = null;
+        hubLoadPromise = null;
+        const hub2 = await ensureHubApi();
+        this.hubApi = hub2;
+        result = await hub2.signMessage({
+          appName: appName || 'NimiqBilliards',
+          message,
+        });
+      }
 
       if (!result?.signer || !result?.signature) {
         const err = new Error('Connection cancelled');
